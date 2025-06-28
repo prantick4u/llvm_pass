@@ -1,3 +1,8 @@
-/build/
-/test/
-!/test/test.cpp
+/HelloPass/build/
+/HelloPass/test/
+!/HelloPass/test/test.cpp
+*.ll
+*.bc
+
+/Workbook/HelloSecurityPass/build/
+/Workbook/HelloSecurityPass/
