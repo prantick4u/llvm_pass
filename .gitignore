@@ -3,3 +3,6 @@
 !/HelloPass/test/test.cpp
 *.ll
 *.bc
+
+/Workbook/HelloSecurityPass/build/
+/Workbook/HelloSecurityPass/
