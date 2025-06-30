@@ -4,5 +4,6 @@
 *.ll
 *.bc
 
-/Workbook/HelloSecurityPass/build/
-/Workbook/HelloSecurityPass/
+/Workbook/StaticAnalyzer/build/
+/Workbook/StaticAnalyzer/test
+!/Workbook/StaticAnalyzer/test/test.c
