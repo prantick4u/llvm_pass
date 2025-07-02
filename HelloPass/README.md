@@ -2,7 +2,7 @@
 LLVM adds the optnone attribute to functions when compiled with -O0.
 And when a function has optnone, LLVM's pass manager skips all 
 optimization passes, including custom ones — even if they don't modify IR. -->
-clang -S -emit-llvm vuln.c -o vuln.llcd 
+clang -S -emit-llvm vuln.c -o vuln.ll
 
 <!-- Regenerate IR with optimizations enabled. That way, optnone won’t be inserted -->
 clang -S -emit-llvm -O1 test.cpp -o test.ll
