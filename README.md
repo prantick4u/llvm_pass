@@ -38,3 +38,42 @@ LLVM passes are essential for optimizing and transforming code during compilatio
 
 These passes illustrate the flexibility and power of LLVM's modular pass infrastructure, which enables fine-grained control over code transformation and analysis workflows.
 
+
+
+
+## 🔧 Build LLVM project only to run Passes
+
+### Steps:
+- Install required prerequisites
+```
+sudo apt update
+sudo apt install cmake ninja-build git clang libedit-dev python3 zlib1g-dev libxml2-dev
+
+```
+- Checkout to stable version
+
+```
+git checkout llvmorg-14.0.0
+```
+
+- Run `cmake` command
+
+```
+mkdir build && cd build
+
+cmake -G Ninja ../llvm \
+  -DLLVM_ENABLE_PROJECTS="llvm" \
+  -DLLVM_TARGETS_TO_BUILD="X86" \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DLLVM_ENABLE_ASSERTIONS=ON \
+  -DLLVM_INCLUDE_TESTS=OFF \
+  -DLLVM_INCLUDE_EXAMPLES=OFF \
+  -DLLVM_INCLUDE_DOCS=OFF
+
+```
+
+- Build 
+```
+ninja opt llvm-config -j 2
+```
+
