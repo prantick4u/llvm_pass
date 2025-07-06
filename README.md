@@ -77,3 +77,31 @@ cmake -G Ninja ../llvm \
 ninja opt llvm-config -j 2
 ```
 
+If you're rebuilding frequently:(Optional)
+```
+sudo apt install ccache
+export CC="ccache clang"
+export CXX="ccache clang++"
+```
+This can cache and reuse compiled objects.
+
+
+- Add to PATH
+```
+export PATH=$(pwd)/bin:$PATH
+export LLVM_DIR=$(pwd)/lib/cmake/llvm
+```
+
+- Now build your pass & run
+
+```
+clang++ -fPIC -shared HelloPass.cpp -o libHelloPass.so `llvm-config --cxxflags --ldflags --system-libs --libs core passes` 
+```
+
+- Run pass
+
+```
+opt -load-pass-plugin ./libHelloPass.so -passes=yourpass < input.ll -disable-output
+
+```
+
