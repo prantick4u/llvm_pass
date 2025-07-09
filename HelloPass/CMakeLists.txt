@@ -6,7 +6,19 @@ find_package(LLVM REQUIRED CONFIG)
 list(APPEND CMAKE_MODULE_PATH "${LLVM_CMAKE_DIR}")
 include(AddLLVM)
 
+
+# Add include path from llvm-config
+execute_process(
+  COMMAND llvm-config --includedir
+  OUTPUT_VARIABLE LLVM_INCLUDE
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+include_directories(${LLVM_INCLUDE})
+
+
+
 set(CMAKE_CXX_STANDARD 17)
+add_definitions(${LLVM_DEFINITIONS})
 set(CMAKE_CXX_STANDARD_REQUIRED YES)
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 set(CMAKE_VISIBILITY_INLINES_HIDDEN ON)

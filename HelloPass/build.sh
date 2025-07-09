@@ -1,10 +1,13 @@
-# 1. Delete previous build
-rm -rf build
+#!/bin/bash
 
-# 2. Recreate and reconfigure
+rm -rf build
 mkdir build
 cd build
-cmake ..
 
-# 3. Rebuild the pass
+# Explicitly point to Homebrew LLVM config directory
+cmake .. \
+  -DLLVM_DIR=/opt/homebrew/opt/llvm/lib/cmake/llvm \
+  -DCMAKE_BUILD_TYPE=Release
+
 make
+
