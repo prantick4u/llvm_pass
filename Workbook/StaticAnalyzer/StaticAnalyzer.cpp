@@ -13,19 +13,25 @@ struct StaticOverflowCheckPass : PassInfoMixin<StaticOverflowCheckPass> {
       for (auto &I : BB) {
         if (auto *alloca = dyn_cast<AllocaInst>(&I)) {
           if (alloca->getAllocatedType()->isArrayTy()) {
-            // Now check for uses of this alloca in calls
             for (User *U : alloca->users()) {
-              if (auto *gep = dyn_cast<GetElementPtrInst>(U)) {
-                for (User *gepUser : gep->users()) {
-                  if (auto *call = dyn_cast<CallInst>(gepUser)) {
+              if (auto *call = dyn_cast<CallInst>(U)) {
+                if (Function *called = call->getCalledFunction()) {
+                  StringRef name = called->getName();
+                  if (name.contains("strcpy") || name.contains("__strcpy_chk")) {
+                    errs() << "🔍 [StaticOverflowCheck] Potential overflow in [direct] " << F.getName() << ":\n";
+                    errs() << "   Buffer: " << *alloca << "\n";
+                    errs() << "   Call:   " << *call << "\n";
+                  }
+                }
+              } else if (Instruction *I = dyn_cast<Instruction>(U)) {
+                for (User *subU : I->users()) {
+                  if (auto *call = dyn_cast<CallInst>(subU)) {
                     if (Function *called = call->getCalledFunction()) {
-                      if (called->getName() == "strcpy") {
-                        Value *src = call->getArgOperand(1);
-                        if (isa<Argument>(src)) {
-                          errs() << "🔍 [StaticOverflowCheck] Potential overflow in " << F.getName() << ":\n";
-                          errs() << "   Buffer: " << *alloca << "\n";
-                          errs() << "   Call:   " << *call << "\n";
-                        }
+                      StringRef name = called->getName();
+                      if (name.contains("strcpy") || name.contains("__strcpy_chk")) {
+                        errs() << "🔍 [StaticOverflowCheck] Potential overflow in [indirect] " << F.getName() << ":\n";
+                        errs() << "   Buffer: " << *alloca << "\n";
+                        errs() << "   Call:   " << *call << "\n";
                       }
                     }
                   }
