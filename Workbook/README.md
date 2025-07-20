@@ -54,3 +54,13 @@ Unsafe memcpy
 Lack of bounds checks
 
 Dangerous use of return values or tainted inputs
+
+
+
+
+| Issue                 | How to detect in LLVM IR                                  |
+| --------------------- | --------------------------------------------------------- |
+| **Buffer overflow**   | Find `alloca` arrays & follow to `strcpy`/`memcpy`        |
+| **Use-after-free**    | Look for `free()` calls and track pointer usage afterward |
+| **Double free**       | Count how many times a pointer is passed to `free()`      |
+| **Uninitialized use** | Track variables with no `store` before `load`             |
