@@ -7,3 +7,8 @@
 /Workbook/StaticAnalyzer/build/
 /Workbook/StaticAnalyzer/test
 !/Workbook/StaticAnalyzer/test/test.c
+
+
+/Workbook/ReplaceMultWithAdd/build/
+/Workbook/ReplaceMultWithAdd/test
+!/Workbook/ReplaceMultWithAdd/test/test.c
