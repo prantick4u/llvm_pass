@@ -2,14 +2,14 @@ When you compile with -O1 or higher, Clang may optimize away mul instructions du
 That’s why:
 
 
--O0 is useful for preserving original operations like mul.
+- O0 is useful for preserving original operations like mul.
 
--But -O0 adds optnone, which disables all LLVM opt passes — including your custom one.
+- But -O0 adds optnone, which disables all LLVM opt passes — including your custom one.
+
+#### Compile command:
+_clang -S -emit-llvm ./test/test.c -o test.ll -Xclang -disable-O0-optnone -O0_
 
 
-clang -S -emit-llvm ./test/test.c -o test.ll -Xclang -disable-O0-optnone -O0
-
-
-
-opt -load-pass-plugin build/ReplaceMultWithAdd.dylib -debug-pass-manager \  
-    -passes=replace-mult-with-add test.ll -S -o output.ll
+#### Run command:
+_opt -load-pass-plugin build/ReplaceMultWithAdd.dylib -debug-pass-manager \  
+    -passes=replace-mult-with-add test.ll -S -o output.ll_
