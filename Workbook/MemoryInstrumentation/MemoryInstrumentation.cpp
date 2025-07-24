@@ -2,35 +2,70 @@
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/PassManager.h"
 #include "llvm/IR/IRBuilder.h"
-#include "llvm/IR/Module.h"
+#include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Passes/PassBuilder.h"
 #include "llvm/Passes/PassPlugin.h"
 
 using namespace llvm;
 
+namespace {
 struct MemoryInstrumentationPass : PassInfoMixin<MemoryInstrumentationPass> {
-  PreservedAnalyses run(Function &F, FunctionAnalysisManager &AM) {
+  PreservedAnalyses run(Function &F, FunctionAnalysisManager &) {
     LLVMContext &Ctx = F.getContext();
     Module *M = F.getParent();
+    IRBuilder<> builder(Ctx);
 
-    // Declare or get reference to the logging function: void __log_access(i8*)
-    FunctionCallee LogFunc = M->getOrInsertFunction(
-        "__log_access", FunctionType::get(Type::getVoidTy(Ctx),
-                                          {PointerType::get(Type::getInt8Ty(Ctx), 0)}, false));
+    // Use PointerType::getUnqual(...) to get i8*
+    Type *Int8Ty = Type::getInt8Ty(Ctx);
+    Type *Int32Ty = Type::getInt32Ty(Ctx);
+    Type *VoidTy = Type::getVoidTy(Ctx);
+    Type *Int8PtrTy = PointerType::getUnqual(Int8Ty);
+
+    // Declare the logger function: void __log_access(void*, char, int, const char*, const char*, int)
+    FunctionCallee logFn = M->getOrInsertFunction("__log_access",
+      FunctionType::get(VoidTy, { Int8PtrTy, Int8Ty, Int32Ty, Int8PtrTy, Int8PtrTy, Int32Ty }, false));
 
     for (auto &BB : F) {
       for (auto &I : BB) {
-        if (auto *LI = dyn_cast<LoadInst>(&I)) {
-          IRBuilder<> Builder(LI);
-          Value *Ptr = LI->getPointerOperand();
-          Value *Cast = Builder.CreatePointerCast(Ptr, PointerType::get(Type::getInt8Ty(Ctx), 0));
-          Builder.CreateCall(LogFunc, {Cast});
-        } else if (auto *SI = dyn_cast<StoreInst>(&I)) {
-          IRBuilder<> Builder(SI);
-          Value *Ptr = SI->getPointerOperand();
-          Value *Cast = Builder.CreatePointerCast(Ptr, PointerType::get(Type::getInt8Ty(Ctx), 0));
-          Builder.CreateCall(LogFunc, {Cast});
+        Value *addr = nullptr;
+        bool isStore = false;
+        unsigned size = 0;
+
+        if (auto *load = dyn_cast<LoadInst>(&I)) {
+          addr = load->getPointerOperand();
+          isStore = false;
+          size = load->getType()->getPrimitiveSizeInBits() / 8;
+        } else if (auto *store = dyn_cast<StoreInst>(&I)) {
+          addr = store->getPointerOperand();
+          isStore = true;
+          size = store->getValueOperand()->getType()->getPrimitiveSizeInBits() / 8;
+        }
+
+        if (addr) {
+          builder.SetInsertPoint(&I);
+
+          std::string funcName = F.getName().str();
+          std::string fileName = "unknown";
+          unsigned line = 0;
+
+          if (const DebugLoc &dbg = I.getDebugLoc()) {
+            if (auto *scope = dyn_cast_or_null<DILocation>(dbg.get())) {
+              fileName = scope->getFilename().str();
+              line = scope->getLine();
+            }
+          }
+
+          Value *args[] = {
+            builder.CreatePointerCast(addr, Int8PtrTy),
+            builder.getInt8(isStore ? 1 : 0),
+            builder.getInt32(size),
+            builder.CreateGlobalString(funcName),
+            builder.CreateGlobalString(fileName),
+            builder.getInt32(line)
+          };
+
+          builder.CreateCall(logFn, args);
         }
       }
     }
@@ -38,19 +73,16 @@ struct MemoryInstrumentationPass : PassInfoMixin<MemoryInstrumentationPass> {
     return PreservedAnalyses::none();
   }
 };
+} // namespace
 
-// Register the pass plugin
-extern "C" LLVM_ATTRIBUTE_WEAK PassPluginLibraryInfo llvmGetPassPluginInfo() {
+extern "C" LLVM_ATTRIBUTE_WEAK ::llvm::PassPluginLibraryInfo llvmGetPassPluginInfo() {
   return {
-    LLVM_PLUGIN_API_VERSION, "MemoryInstrumentationPass", "v0.1",
+    LLVM_PLUGIN_API_VERSION, "MemoryInstrumentation", "v0.1",
     [](PassBuilder &PB) {
       PB.registerPipelineParsingCallback(
-        [](StringRef Name, ModulePassManager &MPM,
-           ArrayRef<PassBuilder::PipelineElement>) {
+        [](StringRef Name, ModulePassManager &MPM, ArrayRef<PassBuilder::PipelineElement>) {
           if (Name == "mem-instrument") {
-            FunctionPassManager FPM;
-            FPM.addPass(MemoryInstrumentationPass());
-            MPM.addPass(createModuleToFunctionPassAdaptor(std::move(FPM)));
+            MPM.addPass(createModuleToFunctionPassAdaptor(MemoryInstrumentationPass()));
             return true;
           }
           return false;

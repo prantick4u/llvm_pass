@@ -1,6 +1,12 @@
 1. ✅ Run your LLVM Pass
 
-    clang -S -emit-llvm test.c -o test.ll -Xclang -disable-O0-optnone -O0
+    clang -O0 -g -S -emit-llvm test/test.c -o test.ll -Xclang -disable-O0-optnone
+
+    -O0: keeps instructions (no optimization removes debug info).
+
+    -g: emits DWARF debug info (including file and line).
+
+    -S -emit-llvm: generates readable .ll IR.
 
     Note: We need to remove the optnone from the test.ll file using the flag `-Xclang -disable-O0-optnone`, otherwise the functions will be skipped.
 
