@@ -3,6 +3,7 @@
 !/HelloPass/test/test.cpp
 *.ll
 *.bc
+*.o
 
 /Workbook/StaticAnalyzer/build/
 /Workbook/StaticAnalyzer/test
@@ -12,3 +13,9 @@
 /Workbook/ReplaceMultWithAdd/build/
 /Workbook/ReplaceMultWithAdd/test
 !/Workbook/ReplaceMultWithAdd/test/test.c
+
+
+/Workbook/MemoryInstrumentation/build/
+/Workbook/MemoryInstrumentation/test
+!/Workbook/MemoryInstrumentation/test/test.c
+!/Workbook/MemoryInstrumentation/logger/logger.c
