@@ -46,16 +46,15 @@ struct MemoryInstrumentationPass : PassInfoMixin<MemoryInstrumentationPass> {
           builder.SetInsertPoint(&I);
 
           std::string funcName = F.getName().str();
-          std::string fileName = "unknown";
+          std::string fileName = "compiler-inserted";
           unsigned line = 0;
-
-          if (const DebugLoc &dbg = I.getDebugLoc()) {
-            if (auto *scope = dyn_cast_or_null<DILocation>(dbg.get())) {
-              fileName = scope->getFilename().str();
-              line = scope->getLine();
-            }
+          if (DILocation *loc = I.getDebugLoc()) {
+              fileName = loc->getFilename().str();
+              if (fileName.empty() && loc->getScope())
+                  if (auto *scope = dyn_cast<DIScope>(loc->getScope()))
+                      fileName = scope->getFilename().str();
+              line = loc->getLine();
           }
-
           Value *args[] = {
             builder.CreatePointerCast(addr, Int8PtrTy),
             builder.getInt8(isStore ? 1 : 0),
