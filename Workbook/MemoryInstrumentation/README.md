@@ -36,12 +36,19 @@ First we need to compile the pass using the build.sh command. Then we can follow
 The output would be like:
 
 🔍 Store of 4 bytes at 0x16f8134dc in main (compiler-inserted:0)
+
 🔍 Store of 4 bytes at 0x16f8134d8 in main (test/test.c:13)
+
 🔍 Load of 4 bytes at 0x16f8134d8 in main (test/test.c:14)
+
 🔍 Load of 4 bytes at 0x16f8134d8 in main (test/test.c:14)
+
 🔍 Store of 4 bytes at 0x16f81349c in adjust (compiler-inserted:0)
+
 🔍 Load of 4 bytes at 0x16f81349c in adjust (test/test.c:6)
+
 🔍 Store of 4 bytes at 0x16f81349c in adjust (test/test.c:6)
+
 🔍 Load of 4 bytes at 0x16f81349c in adjust (test/test.c:7)
 
 
