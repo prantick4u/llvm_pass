@@ -4,6 +4,7 @@
 *.ll
 *.bc
 *.o
+*.exe
 
 /Workbook/StaticAnalyzer/build/
 /Workbook/StaticAnalyzer/test
